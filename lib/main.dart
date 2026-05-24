@@ -49,6 +49,19 @@ class _CameraPageState extends State<CameraPage> {
     });
   }
 
+  Future<void> _pickFromGallery() async {
+    final XFile? photo = await _picker.pickImage(source: ImageSource.gallery);
+    if (photo == null) return;
+
+    final tempDir = await getTemporaryDirectory();
+    final tempPath = path.join(tempDir.path, 'temp_food_image.jpg');
+    final tempFile = await File(photo.path).copy(tempPath);
+
+    setState(() {
+      _tempImageFile = tempFile;
+    });
+  }
+
   // 임시 파일 삭제
   Future<void> _deleteTempFile() async {
     if (_tempImageFile != null && await _tempImageFile!.exists()) {
@@ -81,11 +94,11 @@ class _CameraPageState extends State<CameraPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _deleteTempFile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  '사진 삭제',
+                  style: TextStyle(color: Colors.white),
                 ),
-                child: const Text('사진 삭제',
-                    style: TextStyle(color: Colors.white)),
               ),
             ] else ...[
               const Icon(Icons.camera_alt, size: 100, color: Colors.grey),
@@ -95,9 +108,21 @@ class _CameraPageState extends State<CameraPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _takePhoto,
-        child: const Icon(Icons.camera_alt),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: 'gallery',
+            onPressed: _pickFromGallery,
+            child: const Icon(Icons.photo_library),
+          ),
+          const SizedBox(height: 16),
+          FloatingActionButton(
+            heroTag: 'camera',
+            onPressed: _takePhoto,
+            child: const Icon(Icons.camera_alt),
+          ),
+        ],
       ),
     );
   }
